@@ -55,7 +55,6 @@ wget -O cef.tar.bz2 http://opensource.spotify.com/cefbuilds/cef_binary_86.0.14%2
 tar -xvjf cef.tar.bz2
 rm cef.tar.bz2
 mv cef_binary_86.0.14+g0b3aeae+chromium-86.0.4240.75_linux64 cef
-#mv cef_binary_85.3.12+g3e94ebf+chromium-85.0.4183.121_linuxarm64 cef
 rm cef.tar.bz2
 
 wget -O nodejs.tar.gz https://nodejs.org/dist/v12.19.0/node-v12.19.0.tar.gz
@@ -65,7 +64,7 @@ mv node-v12.19.0 nodejs
 cd nodejs
 ./configure
 make
-make install
+sudo make install
 cd ../
 
 git clone --recursive https://github.com/obsproject/obs-studio.git obs-studio
@@ -74,7 +73,7 @@ cd ./obs-studio/build
 cmake -DBUILD_BROWSER="ON" -DCEF_ROOT_DIR="../../cef" -DCMAKE_INSTALL_PREFIX="/usr" -DUNIX_STRUCTURE="1" ..
 cmake -DCMAKE_INSTALL_PREFIX="/usr" -DUNIX_STRUCTURE="1" ..
 make
-make install
+sudo make install
 cd ../../
 
 git clone --recursive https://github.com/Palakis/obs-websocket.git obs-websocket
