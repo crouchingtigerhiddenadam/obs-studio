@@ -95,17 +95,17 @@ make install
 cd ../..
 
 # NodeJS
-apt -y install\
- npm\
- nodejs
-# wget -O nodejs.tar.gz https://nodejs.org/dist/v12.19.0/node-v12.19.0.tar.gz
-# tar -xvf nodejs.tar.gz
-# mv ./node-v12.19.0 ./nodejs
-# cd ./nodejs
-# ./configure
-# make
-# make install
-# cd ..
+# apt -y install\
+#  npm\
+#  nodejs
+wget -O nodejs.tar.gz https://nodejs.org/dist/v12.19.0/node-v12.19.0.tar.gz
+tar -xvf nodejs.tar.gz
+mv ./node-v12.19.0 ./nodejs
+cd ./nodejs
+./configure
+make
+make install
+cd ..
 
 # OBS Tablet Remote
 git clone https://github.com/t2t2/obs-tablet-remote obs-tabletremote
