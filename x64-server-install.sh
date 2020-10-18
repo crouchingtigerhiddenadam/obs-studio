@@ -1,8 +1,22 @@
-mkdir .sources
-cd .sources
+mkdir /opt/.sources
+cd /opt/.sources
 
-sudo apt update
-sudo apt -y install\
+# Setup APT
+echo "deb http://mirror.ox.ac.uk/debian/ buster main contrib non-free" | tee /etc/apt/sources.list
+echo "deb-src http://mirror.ox.ac.uk/debian/ buster main contrib non-free" | tee -a /etc/apt/sources.list
+echo "" | tee -a /etc/apt/sources.list
+echo "deb http://security.debian.org/debian-security buster/updates main contrib non-free" | tee -a /etc/apt/sources.list
+echo "deb-src http://security.debian.org/debian-security buster/updates main contrib non-free" | tee -a /etc/apt/sources.list
+echo "" | tee -a /etc/apt/sources.list
+echo "deb http://mirror.ox.ac.uk/debian/ buster-updates main contrib non-free" | tee -a /etc/apt/sources.list
+echo "deb-src http://mirror.ox.ac.uk/debian/ buster-updates main contrib non-free" | tee -a /etc/apt/sources.list
+echo "" | tee -a /etc/apt/sources.list
+echo "deb http://deb.debian.org/debian buster-backports main contrib non-free" | tee -a /etc/apt/sources.list
+echo "deb-src http://deb.debian.org/debian buster-backports main contrib non-free" | tee -a /etc/apt/sources.list
+apt update
+
+# Setup Build Essentials
+apt -y install\
  build-essential\
  checkinstall\
  cmake\
@@ -23,6 +37,7 @@ sudo apt -y install\
  libjansson-dev\
  libluajit-5.1-dev\
  libmbedtls-dev\
+ libnss3-dev\
  libpulse-dev\
  libqt5svg5-dev\
  libqt5x11extras5-dev\
@@ -44,6 +59,7 @@ sudo apt -y install\
  libxcb-xinput-dev\
  libxcomposite-dev\
  libxinerama-dev\
+ libxss-dev\
  pkg-config\
  python3-dev\
  qtbase5-dev\
@@ -51,41 +67,66 @@ sudo apt -y install\
  wget\
  xcb
 
-wget -O cef.tar.bz2 http://opensource.spotify.com/cefbuilds/cef_binary_86.0.14%2Bg0b3aeae%2Bchromium-86.0.4240.75_linux64.tar.bz2
-tar -xvjf cef.tar.bz2
-rm cef.tar.bz2
-mv cef_binary_86.0.14+g0b3aeae+chromium-86.0.4240.75_linux64 cef
-rm cef.tar.bz2
+# Chrome Embedded Framework
+wget -O cef.tar.bz2 https://cdn-fastly.obsproject.com/downloads/cef_binary_3770_linux64.tar.bz2
+tar -xvjf ./cef.tar.bz2
+mv ./cef_binary_3770_linux64 ./cef
 
-wget -O nodejs.tar.gz https://nodejs.org/dist/v12.19.0/node-v12.19.0.tar.gz
-tar -xvf nodejs.tar.gz
-rm nodejs.tar.gz
-mv node-v12.19.0 nodejs
-cd nodejs
-./configure
-make
-sudo make install
-cd ../
-
+# OBS Studio
 git clone --recursive https://github.com/obsproject/obs-studio.git obs-studio
-mkdir obs-studio/build
+mkdir ./obs-studio/build
 cd ./obs-studio/build
-cmake -DBUILD_BROWSER="ON" -DCEF_ROOT_DIR="../../cef" -DCMAKE_INSTALL_PREFIX="/usr" -DUNIX_STRUCTURE="1" ..
-cmake -DCMAKE_INSTALL_PREFIX="/usr" -DUNIX_STRUCTURE="1" ..
+cmake -DBUILD_BROWSER=ON -DCEF_ROOT_DIR="../../cef" -DCMAKE_INSTALL_PREFIX=/usr -DUNIX_STRUCTURE=1 ..
 make
-sudo make install
-cd ../../
+make install
+cd ../..
 
+# OBS Websocket
 git clone --recursive https://github.com/Palakis/obs-websocket.git obs-websocket
 mkdir ./obs-websocket/build
 cd ./obs-websocket/build
 cmake -DLIBOBS_INCLUDE_DIR="../obs-studio/UI" -DCMAKE_INSTALL_PREFIX=/usr -DUSE_UBUNTU_FIX=true ..
 make
 make install
-cd ../../
+cd ../..
 
+# NodeJS
+apt -y install\
+ npm\
+ nodejs
+# wget -O nodejs.tar.gz https://nodejs.org/dist/v12.19.0/node-v12.19.0.tar.gz
+# tar -xvf nodejs.tar.gz
+# mv ./node-v12.19.0 ./nodejs
+# cd ./nodejs
+# ./configure
+# make
+# make install
+# cd ..
+
+# OBS Tablet Remote
 git clone https://github.com/t2t2/obs-tablet-remote obs-tabletremote
 cd ./obs-tabletremote/
 npm install
 npm run build
-cd ../
+
+# Install User Interface
+apt -y install chromium\
+ lxde-core\
+
+# Install VNC
+apt -y install x11vnc
+echo "[Unit]" | tee /lib/systemd/system/x11vnc.service
+echo "Description=x11vnc server" | tee -a /lib/systemd/system/x11vnc.service
+echo "After=syslog.target network.target" | tee -a /lib/systemd/system/x11vnc.service
+echo "" | tee -a /lib/systemd/system/x11vnc.service
+echo "[Service]" | tee -a /lib/systemd/system/x11vnc.service
+echo "ExecStart=/usr/bin/x11vnc -create -xkb -noxrecord -noxfixes -noxdamage -display :0 -auth /var/run/lightdm/root/:0 -rfbport 5901" | tee -a /lib/systemd/system/x11vnc.service
+echo "" | tee -a /lib/systemd/system/x11vnc.service
+echo "[Install]" | tee -a /lib/systemd/system/x11vnc.service
+echo "WantedBy=multi-user.target" | tee -a /lib/systemd/system/x11vnc.service
+systemctl daemon-reload
+systemctl enable x11vnc
+
+# Install NGINX
+apt -y install nginx
+cp -r /opt/.sources/obs-tabletremote/dist/* /var/www/html/
